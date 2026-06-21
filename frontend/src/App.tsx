@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { getItems } from "./api/itemApi";
+import { getItems, createItem } from "./api/itemApi";
 import { getStats } from "./api/statsApi";
-import type { Item } from "./types/item";
+import type { CreateItemPayload, Item } from "./types/item";
 import type { Stats } from "./types/stats";
 
 import ItemTable from "./components/ItemTable";
@@ -15,11 +15,23 @@ function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
-    Promise.all([getItems(), getStats()]).then(([itemsData, statsData]) => {
-      setItems(itemsData);
-      setStats(statsData);
-    });
+    const loadDashboardData = async () => {
+    const [itemsData, statsData] = await Promise.all([getItems(), getStats()]);
+    setItems(itemsData);
+    setStats(statsData);
+  };
+    loadDashboardData();
   }, []);
+
+  const handleCreateItem = async (payload: CreateItemPayload) => {
+    await createItem(payload);
+
+    const [itemsData, statsData] = await Promise.all([getItems(), getStats()]);
+    setItems(itemsData);
+    setStats(statsData);
+
+    setIsAddModalOpen(false);
+  };
   const handleAddNewWeek = () => { setIsAddModalOpen(true) };
   const handleCloseAddModal = () => { setIsAddModalOpen(false)};
   return (
@@ -30,7 +42,7 @@ function App() {
           <p className="mt-2 text-slate-400">Theo dõi vật phẩm nhận được từ Prime và tiến độ hoàn vốn</p>
         </div>
         <StatsCards stats={ stats } />
-        <ItemFormModal open={isAddModalOpen} onClose={handleCloseAddModal}/>
+        <ItemFormModal open={isAddModalOpen} onClose={handleCloseAddModal} onSubmit={handleCreateItem}/>
         <ItemTable 
           items={ items }
           actions={ <ItemActions onAddClick={ handleAddNewWeek } />}

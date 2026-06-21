@@ -1,19 +1,46 @@
 import { Form, Modal, Input, InputNumber, DatePicker, Select, Switch } from "antd";
+import type { Dayjs } from "dayjs";
+import type { CreateItemPayload } from "../types/item";
 
 type ItemFormModalProps = {
     open: boolean;
     onClose: () => void;
-}
+    onSubmit: (payload: CreateItemPayload) => Promise<void>;
+};
 
-function ItemFormModal({open, onClose} : ItemFormModalProps){
+type ItemFormValues = {
+  week: number;
+  receivedDate: Dayjs;
+  itemName: string;
+  itemType: string;
+  valueUsd: number;
+  sold: boolean;
+  receivedUsd?: number;
+};
+
+function ItemFormModal({open, onClose, onSubmit} : ItemFormModalProps){
     const [form] = Form.useForm();
     const sold = Form.useWatch("sold", form);
-    const handleFinish = (values: Record<string, unknown>) => {
-        console.log(values);
+    const handleFinish = async (values: ItemFormValues) => {
+        const payload: CreateItemPayload = {
+            week: values.week,
+            receivedDate: values.receivedDate.format("YYYY-MM-DD"),
+            itemName: values.itemName,
+            itemType: values.itemType,
+            valueUsd: values.valueUsd,
+            sold: values.sold,
+            receivedUsd: values.sold? values.receivedUsd ?? null : null,
+        };
+        await onSubmit(payload);
+        form.resetFields();
+    };
+    const handleCancle = () => {
+        form.resetFields();
+        onClose();
     };
 
     return (<Modal title="Thêm vật phẩm mới" 
-                open={open} onCancel={onClose} onOk={() => form.submit()} okText="Thêm" cancelText="Hủy">
+                open={open} onCancel={handleCancle} onOk={() => form.submit()} okText="Thêm" cancelText="Hủy">
                 <Form form={form} onFinish={handleFinish} initialValues={{sold: false, itemType: "Skin"}}>
                     <Form.Item label="Tuần" name="week" rules={[{ required: true, message: "Vui lòng nhập số tuần" }]}> 
                         <InputNumber /> 
