@@ -1,6 +1,7 @@
 type Item = {
     id: number,
-    week: number,
+    weekId: number;
+    weekNumber: number;
     receivedDate: string,
     itemName: string,
     itemType: string,
@@ -10,7 +11,6 @@ type Item = {
 };
 
 type CreateItemPayload = {
-    week: number,
     receivedDate: string,
     itemName: string,
     itemType: string,

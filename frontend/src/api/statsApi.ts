@@ -7,4 +7,4 @@ async function getStats(): Promise<Stats>{
     return response.json();
 }
 
-export {getStats}
+export { getStats }

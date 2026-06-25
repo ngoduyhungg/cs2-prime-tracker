@@ -9,7 +9,6 @@ type ItemFormModalProps = {
 };
 
 type ItemFormValues = {
-  week: number;
   receivedDate: Dayjs;
   itemName: string;
   itemType: string;
@@ -23,7 +22,6 @@ function ItemFormModal({open, onClose, onSubmit} : ItemFormModalProps){
     const sold = Form.useWatch("sold", form);
     const handleFinish = async (values: ItemFormValues) => {
         const payload: CreateItemPayload = {
-            week: values.week,
             receivedDate: values.receivedDate.format("YYYY-MM-DD"),
             itemName: values.itemName,
             itemType: values.itemType,
@@ -34,17 +32,14 @@ function ItemFormModal({open, onClose, onSubmit} : ItemFormModalProps){
         await onSubmit(payload);
         form.resetFields();
     };
-    const handleCancle = () => {
+    const handleCancel = () => {
         form.resetFields();
         onClose();
     };
 
     return (<Modal title="Thêm vật phẩm mới" 
-                open={open} onCancel={handleCancle} onOk={() => form.submit()} okText="Thêm" cancelText="Hủy">
+                open={open} onCancel={handleCancel} onOk={() => form.submit()} okText="Thêm" cancelText="Hủy">
                 <Form form={form} onFinish={handleFinish} initialValues={{sold: false, itemType: "Skin"}}>
-                    <Form.Item label="Tuần" name="week" rules={[{ required: true, message: "Vui lòng nhập số tuần" }]}> 
-                        <InputNumber /> 
-                    </Form.Item>
                     <Form.Item label="Ngày nhận" name="receivedDate" rules={[{ required: true, message: "Vui lòng nhập ngày nhận" }]}> 
                         <DatePicker /> 
                     </Form.Item>

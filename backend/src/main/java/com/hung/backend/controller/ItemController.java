@@ -1,5 +1,6 @@
 package com.hung.backend.controller;
 
+import com.hung.backend.service.ItemService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hung.backend.repository.ItemRepository;
+import jakarta.validation.Valid;
+
+import com.hung.backend.dto.ItemResponse;
+import com.hung.backend.dto.ItemUpsertRequest;
 import com.hung.backend.dto.SellItemRequest;
-import com.hung.backend.entity.Item;
 
 import lombok.RequiredArgsConstructor;
 import java.util.List;
@@ -20,43 +23,32 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
-@RequestMapping("/api/items")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class ItemController {
-    private final ItemRepository itemRepository;
-    @GetMapping
-    public List<Item> getAllItems(){
-        return itemRepository.findAll();
-    }
-    
-    @PostMapping
-    public Item createItem(@RequestBody Item item){
-        return itemRepository.save(item);
+    private final ItemService itemService;
+    @GetMapping("/items")
+    public List<ItemResponse> getAllItems(){
+        return itemService.getAllItems();
     }
 
-    @PutMapping("/{id}")
-    public Item updateItem(@PathVariable Long id, @RequestBody Item newItem) {
-        Item oldItem = itemRepository.findById(id).orElseThrow();
-        oldItem.setWeek(newItem.getWeek());
-        oldItem.setReceivedDate(newItem.getReceivedDate());
-        oldItem.setItemName(newItem.getItemName());
-        oldItem.setItemType(newItem.getItemType());
-        oldItem.setReceivedUsd(newItem.getReceivedUsd());
-        oldItem.setValueUsd(newItem.getValueUsd());
-        oldItem.setSold(newItem.getSold());
-        return itemRepository.save(oldItem);
+    @PostMapping("/weeks/{weekId}/items")
+    public ItemResponse createItemInWeek(@PathVariable Long weekId, @Valid @RequestBody ItemUpsertRequest request) {
+        return itemService.createItemInWeek(weekId, request);
     }
 
-    @DeleteMapping("/{id}")
+    @PutMapping("/items/{id}")
+    public ItemResponse updateItem(@PathVariable Long id, @RequestBody ItemUpsertRequest newItem) {
+        return itemService.updateItem(id, newItem);
+    }
+
+    @DeleteMapping("/items/{id}")
     public void deleteItem(@PathVariable Long id){
-        itemRepository.deleteById(id);
+        itemService.deleteItem(id);
     }
 
-    @PatchMapping("/{id}/sold")
-    public Item soldItem(@PathVariable Long id,@RequestBody SellItemRequest request){
-        Item item = itemRepository.findById(id).orElseThrow();
-        item.setSold(true);
-        item.setReceivedUsd(request.getReceivedUsd());
-        return itemRepository.save(item);
+    @PatchMapping("/items/{id}/sold")
+    public ItemResponse sellItem(@PathVariable Long id,@RequestBody SellItemRequest request){
+        return itemService.sellItem(id, request);
     }
 }

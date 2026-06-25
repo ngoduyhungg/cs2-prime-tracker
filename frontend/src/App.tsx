@@ -1,39 +1,23 @@
-import { useEffect, useState } from "react";
-import { getItems, createItem } from "./api/itemApi";
-import { getStats } from "./api/statsApi";
-import type { CreateItemPayload, Item } from "./types/item";
-import type { Stats } from "./types/stats";
-
-import ItemTable from "./components/ItemTable";
+import WeekSection from "./components/WeekSection";
 import StatsCards from "./components/StatsCards";
 import ItemActions from "./components/ItemActions";
 import ItemFormModal from "./components/ItemFormModal";
 
+import { usePrimeDashboard } from "./hooks/usePrimeDashboard";
+
 function App() {
-  const [items, setItems] = useState<Item[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const {
+    items,
+    weeks,
+    stats,
+    isAddModalOpen,
+    handleCreateItem,
+    handleAddNewWeek,
+    handleAddItemClick,
+    handleCloseAddModal,
+    handleSaveWeekItems
+  } = usePrimeDashboard();
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
-    const [itemsData, statsData] = await Promise.all([getItems(), getStats()]);
-    setItems(itemsData);
-    setStats(statsData);
-  };
-    loadDashboardData();
-  }, []);
-
-  const handleCreateItem = async (payload: CreateItemPayload) => {
-    await createItem(payload);
-
-    const [itemsData, statsData] = await Promise.all([getItems(), getStats()]);
-    setItems(itemsData);
-    setStats(statsData);
-
-    setIsAddModalOpen(false);
-  };
-  const handleAddNewWeek = () => { setIsAddModalOpen(true) };
-  const handleCloseAddModal = () => { setIsAddModalOpen(false)};
   return (
     <main className="min-h-screen bg-slate-950 text-white p-8">
       <section className="mx-auto max-w-6xl space-y-6">
@@ -43,10 +27,21 @@ function App() {
         </div>
         <StatsCards stats={ stats } />
         <ItemFormModal open={isAddModalOpen} onClose={handleCloseAddModal} onSubmit={handleCreateItem}/>
-        <ItemTable 
-          items={ items }
-          actions={ <ItemActions onAddClick={ handleAddNewWeek } />}
-        />
+        <div className="flex justify-end">
+          <ItemActions label="+ Tuần mới" onAddClick={ handleAddNewWeek } />
+        </div>
+        {weeks.map((week) => {
+          const weekItems = items.filter((item) => item.weekId === week.id);
+          return (
+            <WeekSection 
+              key={ week.id }
+              week={ week }
+              items={ weekItems }
+              onAddItemClick={ handleAddItemClick }
+              onSaveWeekItems={ handleSaveWeekItems }
+            />
+          );
+        })}
       </section>
     </main>
   );

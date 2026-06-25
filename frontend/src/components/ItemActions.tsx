@@ -1,12 +1,13 @@
 import { Button } from "antd";
 
-type Props = {
+type ItemActionProps = {
+    label?: string;
     onAddClick: () => void;
 }
 
-function ItemActions({ onAddClick } : Props){
+function ItemActions({ label= "+ Thêm vật phẩm mới",onAddClick } : ItemActionProps){
     return (
-        <Button type="primary" onClick={ onAddClick }>+ Tuần mới</Button>
+        <Button type="primary" onClick={ onAddClick }> { label }</Button>
     );
 }
 export default ItemActions;
