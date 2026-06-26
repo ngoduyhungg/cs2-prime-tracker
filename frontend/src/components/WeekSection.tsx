@@ -4,7 +4,7 @@ import type { Item } from "../types/item";
 import ItemTable from "./ItemTable";
 import ItemActions from "./ItemActions";
 import { useState } from "react";
-import { Button, Space } from "antd";
+import { Button} from "antd";
 
 //import { Card } from "antd";
 
@@ -54,32 +54,50 @@ function WeekSection({ week, items, onAddItemClick, onSaveWeekItems} : WeekSecti
     };
 
     const tableActions = isEditing ? (
-        <Space>
+        <>
             <Button type="primary" onClick={ handleSaveEdit }>
                 Lưu
             </Button>
-            <Button type="primary" onClick={ handleCancelEdit }>
+            <Button onClick={ handleCancelEdit }>
                 Hủy
             </Button>
-        </Space>
+        </>
     ) : (
-        <Space>
+        <>
             <ItemActions label="+ Thêm vật phẩm" onAddClick={() => onAddItemClick(week.id)}/>
             <Button onClick={ handleStartEdit }> Chỉnh sửa </Button>
-        </Space>
+        </>
     );
 
     return(
-        <section>
-            <ItemTable 
-                title={`Tuần ${week.weekNumber}`}
-                items={ displayedItems }
-                actions={ tableActions }
-                isEditing={ isEditing }
-                onDraftItemChange={ handleDraftItemChange }
-                onDraftItemDelete={ handleDraftItemDelete }
-            />
-        </section>
+        <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-sm transition-all duration-200 hover:border-slate-700">
+        <div className="mb-5 flex flex-col gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
+                    Weekly Drop
+                </p>
+
+                <h2 className="mt-2 text-xl font-bold text-slate-100">
+                    Tuần {week.weekNumber}
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-400">
+                    {displayedItems.length} vật phẩm đang được theo dõi trong tuần này
+                </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+                {tableActions}
+            </div>
+        </div>
+
+        <ItemTable
+            items={displayedItems}
+            isEditing={isEditing}
+            onDraftItemChange={handleDraftItemChange}
+            onDraftItemDelete={handleDraftItemDelete}
+        />
+    </section>
     );
 };
 

@@ -1,150 +1,294 @@
-import { Button, Card, Input, InputNumber, Select, Switch, Table, Tag } from "antd";
+import { Button, Input, InputNumber, Select, Switch } from "antd";
 import type { Item } from "../types/item";
-import type { ReactNode } from "react";
 
 type ItemTableProps = {
-    title?: string;
     items: Item[];
-    actions?: ReactNode;
     isEditing?: boolean;
     onDraftItemChange?: (itemId: number, field: keyof Item, value: unknown) => void;
     onDraftItemDelete?: (itemId: number) => void;
 };
 
-function ItemTable({title="Danh sách vật phẩm", items, actions, isEditing = false, onDraftItemChange, onDraftItemDelete}: ItemTableProps){
-    return(
-        <Card title={ title } extra={ actions } >
-            <Table
-                className="mt-6" dataSource={items} rowKey="id"
-                columns={[
-                    {
-                        title: "Ngày nhận",
-                        dataIndex: "receivedDate",
-                        render: (value: string, record: Item) =>
-                            isEditing ? (
-                                <Input
-                                    type= "date"
-                                    value={ value }
-                                    onChange={ (event) => 
-                                        onDraftItemChange?.(record.id, "receivedDate", event.target.value)
-                                    }
-                                />
-                            ) : (
-                                value
-                            ),
-                    },
-                    { 
-                        title: "Tên item",
-                        dataIndex: "itemName",
-                        render: (value: string, record: Item) =>
-                            isEditing ? (
-                                <Input
-                                    value={ value }
-                                    onChange={ (event) =>
-                                        onDraftItemChange?.(record.id, "itemName", event.target.value)
-                                    }
-                                />
-                            ) : (
-                                value
-                            ),
-                    },
-                    {
-                        title: "Loại",
-                        dataIndex: "itemType",
-                        render: (value: string, record: Item) =>
-                            isEditing ? (
-                                <Select
-                                    value={ value }
-                                    style={{ width: 120 }}
-                                    onChange={ (newValue) => 
-                                        onDraftItemChange?.(record.id, "itemType", newValue) 
-                                    }
-                                    options={[
-                                        { label: "Case", value: "Case" },
-                                        { label: "Skin", value: "Skin" },
-                                        { label: "Graffiti", value: "Graffiti" },
-                                        { label: "Sticker", value: "Sticker" },
-                                        { label: "Other", value: "Other" },
-                                    ]}
-                                />
-                            ) : (
-                                value
-                            ),
-                    },
-                    {
-                        title: "Giá trị ($)",
-                        dataIndex: "valueUsd",
-                        render: (value: number, record: Item) =>
-                            isEditing ? (
-                                <InputNumber
-                                    min={ 0 }
-                                    value={ value }
-                                    onChange={ (newValue) =>
-                                        onDraftItemChange?.(record.id, "valueUsd", newValue ?? 0)
-                                    }
-                                />
-                            ) : (
-                                value
-                            ),
-                    },
-                    {
-                        title: "Tình trạng",
-                        dataIndex: "sold",
-                        render: (sold: boolean, record: Item) => 
-                            isEditing ? (
-                            <Switch
-                                checked={ sold }
-                                checkedChildren="Đã bán"
-                                unCheckedChildren="Chưa bán"
-                                onChange={ (checked) => {
-                                    onDraftItemChange?.(record.id, "sold", checked);
+const itemTypeOptions = [
+    { label: "Case", value: "Case" },
+    { label: "Skin", value: "Skin" },
+    { label: "Graffiti", value: "Graffiti" },
+    { label: "Sticker", value: "Sticker" },
+    { label: "Other", value: "Other" },
+];
 
-                                    if(!checked){ onDraftItemChange?.(record.id, "receivedUsd", null); }
-                                }}
-                            />
-                        ) : (
-                            <Tag color = {sold ? "green" : "red"}> 
-                            {sold ? "Đã bán" : "Chưa bán"}
-                            </Tag>
-                            ),
-                    },
-                    {
-                        title: "Đã nhận ($)",
-                        dataIndex: "receivedUsd",
-                        render: (value: number | null, record: Item) =>
-                            isEditing ? (
-                                <InputNumber
-                                    min={ 0 }
-                                    value={ value }
-                                    disabled={ !record.sold }
-                                    onChange={ (newValue) => 
-                                        onDraftItemChange?.(record.id, "receivedUsd", newValue)
-                                    }
-                                />
-                            ) : (
-                                value ?? ""
-                            ),
-                    },
-                    ...(isEditing 
-                        ? [
-                            {
-                                title: "",
-                                key: "delete",
-                                render: (_: unknown, record: Item) => (
-                                    <Button
-                                        danger
-                                        type="text"
-                                        onClick={() => onDraftItemDelete?.(record.id)}
+function formatUsd(value: number | null) {
+    if (value === null) {
+        return "—";
+    }
+
+    return `$${value.toLocaleString("en-US", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 6,
+    })}`;
+}
+
+function getTypeStyle(itemType: string) {
+    switch (itemType) {
+        case "Case":
+            return "border-amber-500/20 bg-amber-500/10 text-amber-300";
+        case "Skin":
+            return "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
+        case "Graffiti":
+            return "border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-300";
+        case "Sticker":
+            return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+        default:
+            return "border-slate-600/30 bg-slate-700/30 text-slate-300";
+    }
+}
+
+function getTypeShortName(itemType: string) {
+    switch (itemType) {
+        case "Case":
+            return "CA";
+        case "Skin":
+            return "SK";
+        case "Graffiti":
+            return "GR";
+        case "Sticker":
+            return "ST";
+        default:
+            return "OT";
+    }
+}
+
+function ItemTable({
+    items,
+    isEditing = false,
+    onDraftItemChange,
+    onDraftItemDelete,
+}: ItemTableProps) {
+    if (items.length === 0) {
+        return (
+            <div className="mt-6 rounded-3xl border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 text-2xl">
+                    🎁
+                </div>
+
+                <h3 className="text-base font-semibold text-slate-100">
+                    Chưa có vật phẩm nào trong tuần này
+                </h3>
+
+                <p className="mt-2 text-sm text-slate-400">
+                    Thêm drop đầu tiên để bắt đầu theo dõi tuần này.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-6 flex flex-col gap-3">
+            {items.map((item) => (
+                <div
+                    key={item.id}
+                    className="rounded-2xl border border-slate-800 bg-slate-950/50 px-5 py-4 transition-all duration-200 hover:border-slate-700 hover:bg-slate-950/80"
+                >
+                    {isEditing ? (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-start gap-4">
+                                <div
+                                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${getTypeStyle(
+                                        item.itemType
+                                    )}`}
+                                >
+                                    {getTypeShortName(item.itemType)}
+                                </div>
+
+                                <div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-400">
+                                            Tên item
+                                        </label>
+                                        <Input
+                                            value={item.itemName}
+                                            onChange={(event) =>
+                                                onDraftItemChange?.(
+                                                    item.id,
+                                                    "itemName",
+                                                    event.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-400">
+                                            Ngày nhận
+                                        </label>
+                                        <Input
+                                            type="date"
+                                            value={item.receivedDate}
+                                            onChange={(event) =>
+                                                onDraftItemChange?.(
+                                                    item.id,
+                                                    "receivedDate",
+                                                    event.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-400">
+                                            Loại
+                                        </label>
+                                        <Select
+                                            value={item.itemType}
+                                            className="w-full"
+                                            onChange={(newValue) =>
+                                                onDraftItemChange?.(
+                                                    item.id,
+                                                    "itemType",
+                                                    newValue
+                                                )
+                                            }
+                                            options={itemTypeOptions}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-400">
+                                            Tình trạng
+                                        </label>
+                                        <Switch
+                                            checked={item.sold}
+                                            checkedChildren="Đã bán"
+                                            unCheckedChildren="Chưa bán"
+                                            onChange={(checked) => {
+                                                onDraftItemChange?.(
+                                                    item.id,
+                                                    "sold",
+                                                    checked
+                                                );
+
+                                                if (!checked) {
+                                                    onDraftItemChange?.(
+                                                        item.id,
+                                                        "receivedUsd",
+                                                        null
+                                                    );
+                                                }
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-400">
+                                            Giá trị tham khảo
+                                        </label>
+                                        <InputNumber
+                                            min={0}
+                                            step={0.001}
+                                            value={item.valueUsd}
+                                            className="w-full"
+                                            onChange={(newValue) =>
+                                                onDraftItemChange?.(
+                                                    item.id,
+                                                    "valueUsd",
+                                                    newValue ?? 0
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-400">
+                                            Tiền đã nhận
+                                        </label>
+                                        <InputNumber
+                                            min={0}
+                                            step={0.001}
+                                            value={item.receivedUsd}
+                                            disabled={!item.sold}
+                                            className="w-full"
+                                            onChange={(newValue) =>
+                                                onDraftItemChange?.(
+                                                    item.id,
+                                                    "receivedUsd",
+                                                    newValue
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                <Button
+                                    danger
+                                    type="text"
+                                    className="!rounded-full !text-rose-400 hover:!bg-rose-500/10 hover:!text-rose-300"
+                                    onClick={() => onDraftItemDelete?.(item.id)}
+                                >
+                                    ✕
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <div className="flex items-center gap-4">
+                                <div
+                                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${getTypeStyle(
+                                        item.itemType
+                                    )}`}
+                                >
+                                    {getTypeShortName(item.itemType)}
+                                </div>
+
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-100">
+                                        {item.itemName}
+                                    </h3>
+
+                                    <p className="mt-1 text-sm text-slate-400">
+                                        {item.itemType} · {item.receivedDate}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 md:min-w-[280px]">
+                                <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                                    <p className="text-xs text-slate-500">
+                                        Giá trị
+                                    </p>
+                                    <p className="mt-1 font-semibold text-slate-100">
+                                        {formatUsd(item.valueUsd)}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                                    <p className="text-xs text-slate-500">
+                                        Đã nhận
+                                    </p>
+                                    <p
+                                        className={`mt-1 font-semibold ${
+                                            item.receivedUsd === null ? "text-slate-500" : "text-emerald-300"
+                                        }`}
                                     >
-                                        X
-                                    </Button>
-                                ),
-                            },
-                        ]
-                    : []),
-                ]}
-            />
-        </Card>
+                                        {formatUsd(item.receivedUsd)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span
+                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                        item.sold
+                                            ? "bg-emerald-500/10 text-emerald-300"
+                                            : "bg-rose-500/10 text-rose-300"
+                                    }`}
+                                >
+                                    {item.sold ? "Đã bán" : "Chưa bán"}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
     );
 }
 

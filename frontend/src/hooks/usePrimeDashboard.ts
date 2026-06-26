@@ -80,6 +80,7 @@ function usePrimeDashboard() {
         items,
         stats,
         weeks,
+        selectedWeekId,
         isAddModalOpen,
         handleCreateItem,
         handleAddNewWeek,

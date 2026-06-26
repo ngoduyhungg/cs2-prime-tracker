@@ -11,12 +11,15 @@ function App() {
     weeks,
     stats,
     isAddModalOpen,
+    selectedWeekId,
     handleCreateItem,
     handleAddNewWeek,
     handleAddItemClick,
     handleCloseAddModal,
     handleSaveWeekItems
   } = usePrimeDashboard();
+
+  const selectedWeek = weeks.find((week) => week.id === selectedWeekId);
 
   return (
     <main className="min-h-screen bg-slate-950 text-white p-8">
@@ -26,7 +29,7 @@ function App() {
           <p className="mt-2 text-slate-400">Theo dõi vật phẩm nhận được từ Prime và tiến độ hoàn vốn</p>
         </div>
         <StatsCards stats={ stats } />
-        <ItemFormModal open={isAddModalOpen} onClose={handleCloseAddModal} onSubmit={handleCreateItem}/>
+        <ItemFormModal open={isAddModalOpen} selectedWeekNumber={selectedWeek?.weekNumber} onClose={handleCloseAddModal} onSubmit={handleCreateItem}/>
         <div className="flex justify-end">
           <ItemActions label="+ Tuần mới" onAddClick={ handleAddNewWeek } />
         </div>
