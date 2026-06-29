@@ -17,6 +17,17 @@ type DashboardProgressProps = {
 
 const WEEKS_PER_PAGE = 2;
 
+type ItemTypeFilter = "all" | "Case" | "Skin" | "Sticker" | "Graffiti" | "Other";
+
+const itemTypeFilterOptions: { label: string; value: ItemTypeFilter }[] = [
+    { label: "Tất cả loại", value: "all" },
+    { label: "Case", value: "Case" },
+    { label: "Skin", value: "Skin" },
+    { label: "Sticker", value: "Sticker" },
+    { label: "Graffiti", value: "Graffiti" },
+    { label: "Other", value: "Other" },
+];
+
 type SoldFilter = "all" | "sold" | "unsold";
 
 const soldFilterOptions: { label: string; value: SoldFilter }[] = [
@@ -36,8 +47,9 @@ function DashboardProgress({
     const [currentPage, setCurrentPage] = useState(1);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [soldFilter, setSoldFilter] = useState<SoldFilter>("all");
+    const [itemTypeFilter, setItemTypeFilter] = useState<ItemTypeFilter>("all");
     const normalizedKeyword = searchKeyword.trim().toLowerCase();
-    const isFiltering = normalizedKeyword.length > 0 || soldFilter !== "all";
+    const isFiltering = normalizedKeyword.length > 0 || soldFilter !== "all" || itemTypeFilter !== "all";
 
     const filteredItems = useMemo(() => {
         return items.filter((item) => {
@@ -55,10 +67,12 @@ function DashboardProgress({
                 soldFilter === "all" ||
                 (soldFilter === "sold" && item.sold) ||
                 (soldFilter === "unsold" && !item.sold);
+            
+            const matchesItemTypeFilter = itemTypeFilter === "all" || item.itemType === itemTypeFilter;
 
-            return matchesSearch && matchesSoldFilter;
+            return matchesSearch && matchesSoldFilter && matchesItemTypeFilter;
         });
-    }, [items, normalizedKeyword, soldFilter]);
+    }, [items, normalizedKeyword, soldFilter, itemTypeFilter]);
 
     const filteredWeeks = useMemo(() => {
         if (!isFiltering) {
@@ -83,7 +97,7 @@ function DashboardProgress({
     }, [currentPage, totalPages]);
     useEffect(() => {
         setCurrentPage(1);
-    }, [normalizedKeyword, soldFilter]);
+    }, [normalizedKeyword, soldFilter, itemTypeFilter]);
 
     const visibleWeeks = useMemo(() => {
         const startIndex = (currentPage - 1) * WEEKS_PER_PAGE;
@@ -160,6 +174,27 @@ function DashboardProgress({
                                             );
                                         })}
                                     </div>
+
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {itemTypeFilterOptions.map((option) => {
+                                            const isActive = itemTypeFilter === option.value;
+
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => setItemTypeFilter(option.value)}
+                                                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                                                        isActive
+                                                            ? "border-amber-400 bg-amber-500/10 text-amber-300"
+                                                            : "border-slate-700 bg-slate-950/40 text-slate-400 hover:border-slate-500 hover:text-slate-200"
+                                                    }`}
+                                                >
+                                                    {option.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
 
@@ -219,7 +254,7 @@ function DashboardProgress({
 
                             <Button
                                 className="mt-5 !rounded-xl !border-slate-600 !bg-slate-800 !font-semibold !text-slate-100 hover:!border-slate-500 hover:!bg-slate-700"
-                                onClick={() => {setSearchKeyword(""); setSoldFilter("all");}}
+                                onClick={() => {setSearchKeyword(""); setSoldFilter("all"); setItemTypeFilter("all");}}
                             >
                                 Xóa bộ lọc
                             </Button>

@@ -28,6 +28,8 @@ public class ItemService {
             item.getReceivedDate(),
             item.getItemName(),
             item.getItemType(),
+            item.getMarketHashName(),
+            item.getImageUrl(),
             item.getValueUsd(),
             item.getSold(),
             item.getReceivedUsd()
@@ -44,6 +46,8 @@ public class ItemService {
         item.setReceivedDate(request.getReceivedDate());
         item.setItemName(request.getItemName());
         item.setItemType(request.getItemType());
+        item.setMarketHashName(request.getMarketHashName());
+        item.setImageUrl(request.getImageUrl());
         item.setValueUsd(request.getValueUsd());
         boolean sold = request.getSold() != null ? request.getSold() : false;
         item.setSold(sold);
@@ -63,6 +67,13 @@ public class ItemService {
         oldItem.setReceivedDate(newItem.getReceivedDate());
         oldItem.setItemName(newItem.getItemName());
         oldItem.setItemType(newItem.getItemType());
+        if (newItem.getMarketHashName() != null) {
+            oldItem.setMarketHashName(newItem.getMarketHashName());
+        }
+
+        if (newItem.getImageUrl() != null) {
+            oldItem.setImageUrl(newItem.getImageUrl());
+        }
         oldItem.setValueUsd(newItem.getValueUsd());
 
         boolean sold = newItem.getSold() != null ? newItem.getSold() : false;

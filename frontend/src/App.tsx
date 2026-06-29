@@ -2,6 +2,7 @@ import StatsCards from "./components/StatsCards";
 import ItemFormModal from "./components/ItemFormModal";
 import DashboardProgress from "./components/DashboardProgress";
 import BestDropCard from "./components/BestDropCard";
+import BestSaleCard from "./components/BestSaleCard";
 
 import { usePrimeDashboard } from "./hooks/usePrimeDashboard";
 
@@ -34,6 +35,7 @@ function App() {
 
         <StatsCards stats={stats} />
         <BestDropCard items={items} />
+        <BestSaleCard items={items}/>
         <ItemFormModal
           open={isAddModalOpen}
           selectedWeekNumber={selectedWeek?.weekNumber}

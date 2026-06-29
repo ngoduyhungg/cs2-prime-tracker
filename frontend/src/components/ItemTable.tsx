@@ -1,5 +1,8 @@
-import { Button, Input, InputNumber, Select, Switch } from "antd";
+import { useMemo, useState } from "react";
+import { AutoComplete, Button, Input, InputNumber, Select, Switch } from "antd";
+
 import type { Item } from "../types/item";
+import useItemCatalog from "../hooks/useItemCatalog";
 
 type ItemTableProps = {
     items: Item[];
@@ -57,12 +60,121 @@ function getTypeShortName(itemType: string) {
     }
 }
 
+type ItemIconProps = {
+    item: Item;
+    size?: "sm" | "md";
+};
+
+function ItemIcon({ item, size = "md" }: ItemIconProps) {
+    const sizeClass = size === "sm" ? "h-14 w-14" : "h-16 w-16";
+
+    if (item.imageUrl) {
+        return (
+            <div
+                className={`${sizeClass} flex shrink-0 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 p-2`}
+            >
+                <img
+                    src={item.imageUrl}
+                    alt={item.itemName}
+                    className="h-full w-full object-contain"
+                    loading="lazy"
+                />
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className={`${sizeClass} flex shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${getTypeStyle(
+                item.itemType
+            )}`}
+        >
+            {getTypeShortName(item.itemType)}
+        </div>
+    );
+}
+
 function ItemTable({
     items,
     isEditing = false,
     onDraftItemChange,
     onDraftItemDelete,
 }: ItemTableProps) {
+    const [itemSearchText, setItemSearchText] = useState("");
+    const { catalogItems, isLoadingCatalog, catalogError } = useItemCatalog();
+    const catalogOptions = useMemo(() => {
+        const keyword = itemSearchText.trim().toLowerCase();
+
+        if (!keyword) {
+            return [];
+        }
+
+        return catalogItems
+            .filter((catalogItem) => {
+                const name = catalogItem.name.toLowerCase();
+                const marketHashName = catalogItem.marketHashName.toLowerCase();
+                const itemType = catalogItem.itemType.toLowerCase();
+
+                return (
+                    name.includes(keyword) ||
+                    marketHashName.includes(keyword) ||
+                    itemType.includes(keyword)
+                );
+            })
+            .slice(0, 15)
+            .map((catalogItem) => ({
+                value: catalogItem.marketHashName,
+                label: (
+                    <div className="flex items-center gap-3 py-1">
+                        {catalogItem.imageUrl ? (
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 p-1">
+                                <img
+                                    src={catalogItem.imageUrl}
+                                    alt={catalogItem.name}
+                                    className="h-full w-full object-contain"
+                                    loading="lazy"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-xs font-bold text-slate-500">
+                                {catalogItem.itemType.slice(0, 2).toUpperCase()}
+                            </div>
+                        )}
+
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-slate-800">
+                                {catalogItem.name}
+                            </p>
+
+                            <p className="truncate text-xs text-slate-500">
+                                {catalogItem.itemType}
+                            </p>
+                        </div>
+                    </div>
+                ),
+            }));
+    }, [catalogItems, itemSearchText]); 
+
+    const handleCatalogItemSelect = (
+        itemId: number,
+        marketHashName: string
+    ) => {
+        const catalogItem = catalogItems.find(
+            (item) => item.marketHashName === marketHashName
+        );
+
+        if (!catalogItem) {
+            return;
+        }
+
+        onDraftItemChange?.(itemId, "itemName", catalogItem.name);
+        onDraftItemChange?.(itemId, "itemType", catalogItem.itemType);
+        onDraftItemChange?.(itemId, "marketHashName", catalogItem.marketHashName);
+        onDraftItemChange?.(itemId, "imageUrl", catalogItem.imageUrl);
+
+        setItemSearchText(catalogItem.name);
+    };    
+
     if (items.length === 0) {
         return (
             <div className="mt-6 rounded-3xl border border-dashed border-slate-700 bg-slate-950/40 px-6 py-12 text-center">
@@ -91,38 +203,54 @@ function ItemTable({
                     {isEditing ? (
                         <div className="flex flex-col gap-4">
                             <div className="flex items-start gap-4">
-                                <div
-                                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${getTypeStyle(
-                                        item.itemType
-                                    )}`}
-                                >
-                                    {getTypeShortName(item.itemType)}
-                                </div>
+                                <ItemIcon item={item} size="sm" />
 
-                                <div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                                    <div>
+                                <div className="grid min-w-0 flex-1 gap-3 md:grid-cols-2 xl:grid-cols-[260px_220px_220px_130px]">
+                                    <div className="min-w-0">
                                         <label className="mb-1 block text-xs font-medium text-slate-400">
                                             Tên item
                                         </label>
-                                        <Input
+                                        <AutoComplete
                                             value={item.itemName}
-                                            onChange={(event) =>
-                                                onDraftItemChange?.(
-                                                    item.id,
-                                                    "itemName",
-                                                    event.target.value
-                                                )
+                                            className="!w-full"
+                                            popupMatchSelectWidth={360}
+                                            options={catalogOptions}
+                                            showSearch={{
+                                                filterOption: false,
+                                                onSearch: setItemSearchText,
+                                            }}
+                                            onSelect={(value) => handleCatalogItemSelect(item.id, value)}
+                                            onChange={(value) => {
+                                                setItemSearchText(value);
+
+                                                onDraftItemChange?.(item.id, "itemName", value);
+                                                onDraftItemChange?.(item.id, "marketHashName", null);
+                                                onDraftItemChange?.(item.id, "imageUrl", null);
+                                            }}
+                                            placeholder={
+                                                isLoadingCatalog
+                                                    ? "Đang tải catalog CS2..."
+                                                    : "Gõ tên item..."
                                             }
+                                            notFoundContent={
+                                                catalogError
+                                                    ? "Không thể tải catalog"
+                                                    : itemSearchText
+                                                        ? "Không tìm thấy item"
+                                                        : "Gõ để tìm item"
+                                            }
+                                            allowClear
                                         />
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className="mb-1 block text-xs font-medium text-slate-400">
                                             Ngày nhận
                                         </label>
                                         <Input
                                             type="date"
                                             value={item.receivedDate}
+                                            className="!w-full"
                                             onChange={(event) =>
                                                 onDraftItemChange?.(
                                                     item.id,
@@ -133,13 +261,13 @@ function ItemTable({
                                         />
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className="mb-1 block text-xs font-medium text-slate-400">
                                             Loại
                                         </label>
                                         <Select
                                             value={item.itemType}
-                                            className="w-full"
+                                            className="!w-full"
                                             onChange={(newValue) =>
                                                 onDraftItemChange?.(
                                                     item.id,
@@ -151,7 +279,7 @@ function ItemTable({
                                         />
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className="mb-1 block text-xs font-medium text-slate-400">
                                             Tình trạng
                                         </label>
@@ -177,7 +305,7 @@ function ItemTable({
                                         />
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className="mb-1 block text-xs font-medium text-slate-400">
                                             Giá trị tham khảo
                                         </label>
@@ -185,7 +313,7 @@ function ItemTable({
                                             min={0}
                                             step={0.001}
                                             value={item.valueUsd}
-                                            className="w-full"
+                                            className="!w-full"
                                             onChange={(newValue) =>
                                                 onDraftItemChange?.(
                                                     item.id,
@@ -196,7 +324,7 @@ function ItemTable({
                                         />
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className="mb-1 block text-xs font-medium text-slate-400">
                                             Tiền đã nhận
                                         </label>
@@ -230,13 +358,7 @@ function ItemTable({
                     ) : (
                         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_300px_96px] md:items-center">
                             <div className="flex min-w-0 items-center gap-4">
-                                <div
-                                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${getTypeStyle(
-                                        item.itemType
-                                    )}`}
-                                >
-                                    {getTypeShortName(item.itemType)}
-                                </div>
+                                <ItemIcon item={item} size="sm" />
 
                                 <div className="min-w-0">
                                     <h3 className="truncate text-base font-bold text-slate-100">

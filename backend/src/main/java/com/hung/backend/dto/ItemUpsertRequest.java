@@ -21,6 +21,9 @@ public class ItemUpsertRequest {
     private String itemName;
     @NotNull
     private String itemType;
+    private String marketHashName;
+
+    private String imageUrl;
     @NotNull
     private BigDecimal valueUsd;
     private Boolean sold = false;

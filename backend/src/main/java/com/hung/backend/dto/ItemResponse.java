@@ -19,6 +19,8 @@ public class ItemResponse {
     private LocalDate receivedDate;
     private String itemName;
     private String itemType;
+    private String marketHashName;
+    private String imageUrl;
     private BigDecimal valueUsd;
     private Boolean sold;
     private BigDecimal receivedUsd;

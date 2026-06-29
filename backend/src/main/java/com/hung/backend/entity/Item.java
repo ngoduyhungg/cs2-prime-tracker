@@ -35,6 +35,11 @@ public class Item {
    private String itemName;
    @NotNull
    private String itemType;
+   @Column(name = "market_hash_name")
+    private String marketHashName;
+
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
    @Column(name = "received_usd", precision = 12, scale = 6)
    private BigDecimal receivedUsd;
    @NotNull @Column(name = "value_usd", precision = 12, scale = 6, nullable = false)

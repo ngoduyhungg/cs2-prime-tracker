@@ -1,5 +1,9 @@
-import { Form, Modal, Input, InputNumber, DatePicker, Select, Switch } from "antd";
+import { useMemo, useState } from "react";
+import { AutoComplete ,Form, Modal, InputNumber, DatePicker, Select, Switch } from "antd";
 import type { Dayjs } from "dayjs";
+
+import useItemCatalog from "../hooks/useItemCatalog";
+import type { CatalogItem } from "../types/catalog";
 import type { CreateItemPayload } from "../types/item";
 
 type ItemFormModalProps = {
@@ -34,13 +38,88 @@ function ItemFormModal({
 }: ItemFormModalProps) {
     const [form] = Form.useForm();
     const sold = Form.useWatch("sold", form);
+    const [itemSearchText, setItemSearchText] = useState("");
+    const [selectedCatalogItem, setSelectedCatalogItem] = useState<CatalogItem | null>(null);
+    const { catalogItems, isLoadingCatalog, catalogError } = useItemCatalog();
     const isSold = Boolean(sold);
+
+    const catalogOptions = useMemo(() => {
+    const keyword = itemSearchText.trim().toLowerCase();
+
+        if (!keyword) {
+            return [];
+        }
+
+        return catalogItems
+            .filter((item) => {
+                const name = item.name.toLowerCase();
+                const marketHashName = item.marketHashName.toLowerCase();
+                const itemType = item.itemType.toLowerCase();
+
+                return (
+                    name.includes(keyword) ||
+                    marketHashName.includes(keyword) ||
+                    itemType.includes(keyword)
+                );
+            })
+            .slice(0, 15)
+            .map((item) => ({
+                value: item.marketHashName,
+                label: (
+                    <div className="flex items-center gap-3 py-1">
+                        {item.imageUrl ? (
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 p-1">
+                                <img
+                                    src={item.imageUrl}
+                                    alt={item.name}
+                                    className="h-full w-full object-contain"
+                                    loading="lazy"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-xs font-bold text-slate-500">
+                                {item.itemType.slice(0, 2).toUpperCase()}
+                            </div>
+                        )}
+
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-slate-800">
+                                {item.name}
+                            </p>
+                            <p className="truncate text-xs text-slate-500">
+                                {item.itemType}
+                            </p>
+                        </div>
+                    </div>
+                ),
+            }));
+    }, [catalogItems, itemSearchText]);
+
+    const handleCatalogItemSelect = (marketHashName: string) => {
+    const catalogItem = catalogItems.find(
+        (item) => item.marketHashName === marketHashName
+        );
+
+        if (!catalogItem) {
+            return;
+        }
+
+        setSelectedCatalogItem(catalogItem);
+        setItemSearchText(catalogItem.name);
+
+        form.setFieldsValue({
+            itemName: catalogItem.name,
+            itemType: catalogItem.itemType,
+        });
+    };
 
     const handleFinish = async (values: ItemFormValues) => {
         const payload: CreateItemPayload = {
             receivedDate: values.receivedDate.format("YYYY-MM-DD"),
             itemName: values.itemName,
             itemType: values.itemType,
+            marketHashName: selectedCatalogItem?.marketHashName ?? null,
+            imageUrl: selectedCatalogItem?.imageUrl ?? null,
             valueUsd: values.valueUsd,
             sold: values.sold,
             receivedUsd: values.sold ? values.receivedUsd ?? null : null,
@@ -48,10 +127,14 @@ function ItemFormModal({
 
         await onSubmit(payload);
         form.resetFields();
+        setItemSearchText("");
+        setSelectedCatalogItem(null);
     };
 
     const handleCancel = () => {
         form.resetFields();
+        setItemSearchText("");
+        setSelectedCatalogItem(null);
         onClose();
     };
     const fieldLabel = (text: string) => (
@@ -173,8 +256,54 @@ function ItemFormModal({
                             },
                         ]}
                     >
-                        <Input placeholder="Ví dụ: M4A4 | Steel Work" />
+                        <AutoComplete
+                            options={catalogOptions}
+                            onSearch={setItemSearchText}
+                            onSelect={handleCatalogItemSelect}
+                            onChange={(value) => {
+                                setItemSearchText(value);
+                                setSelectedCatalogItem(null);
+                            }}
+                            placeholder={
+                                isLoadingCatalog
+                                    ? "Đang tải catalog CS2..."
+                                    : "Gõ tên item, case, sticker..."
+                            }
+                            notFoundContent={
+                                catalogError
+                                    ? "Không thể tải catalog"
+                                    : itemSearchText
+                                        ? "Không tìm thấy item phù hợp"
+                                        : "Gõ để tìm item"
+                            }
+                            allowClear
+                        />
                     </Form.Item>
+
+                    {selectedCatalogItem && (
+                        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3">
+                            {selectedCatalogItem.imageUrl && (
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-100 bg-white p-1">
+                                    <img
+                                        src={selectedCatalogItem.imageUrl}
+                                        alt={selectedCatalogItem.name}
+                                        className="h-full w-full object-contain"
+                                        loading="lazy"
+                                    />
+                                </div>
+                            )}
+
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-slate-800">
+                                    {selectedCatalogItem.name}
+                                </p>
+
+                                <p className="mt-1 text-xs text-slate-500">
+                                    Đã chọn từ catalog · {selectedCatalogItem.itemType}
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <Form.Item

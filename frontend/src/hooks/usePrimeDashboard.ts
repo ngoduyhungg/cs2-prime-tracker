@@ -84,6 +84,8 @@ function usePrimeDashboard() {
                         receivedDate: item.receivedDate,
                         itemName: item.itemName,
                         itemType: item.itemType,
+                        marketHashName: item.marketHashName,
+                        imageUrl: item.imageUrl,
                         valueUsd: item.valueUsd,
                         sold: item.sold,
                         receivedUsd: item.sold ? item.receivedUsd : null,
