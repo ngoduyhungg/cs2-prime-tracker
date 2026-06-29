@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { message } from "antd";
 import { getItems, createItemInWeek, updateItem, deleteItem } from "../api/itemApi";
 import { getStats } from "../api/statsApi";
 import type { CreateItemPayload, Item } from "../types/item";
@@ -27,8 +28,13 @@ function usePrimeDashboard() {
 
     useEffect(() => {
         const loadDashboardData = async () => {
-        await reloadDashboardData();
-    };
+            try {
+                await reloadDashboardData();
+            } catch {
+                message.error("Không thể tải dữ liệu dashboard");
+            }
+        };
+
         loadDashboardData();
     }, []);
 
@@ -38,43 +44,72 @@ function usePrimeDashboard() {
     }
 
     const handleCreateItem = async (payload: CreateItemPayload) => {
-        if (selectedWeekId == null) return;
+        if (selectedWeekId == null) {
+            message.error("Không tìm thấy tuần để thêm vật phẩm");
+            return;
+        }
 
-        await createItemInWeek(selectedWeekId, payload);
-        await reloadDashboardData();
-        setIsAddModalOpen(false);
-        setSelectedWeekId(null);
+        try {
+            await createItemInWeek(selectedWeekId, payload);
+            await reloadDashboardData();
+
+            setIsAddModalOpen(false);
+            setSelectedWeekId(null);
+
+            message.success("Đã thêm vật phẩm thành công");
+        } catch {
+            message.error("Không thể thêm vật phẩm");
+            throw new Error("Failed to create item");
+        }
     };
 
     const handleSaveWeekItems = async (
         originalItems: Item[],
         draftItems: Item[]
     ) => {
-        const draftItemIds = draftItems.map((item) => item.id);
-        const deleteItems = originalItems.filter(
-            (item) => !draftItemIds.includes(item.id)
-        );
+        try {
+            const draftItemIds = draftItems.map((item) => item.id);
 
-        await Promise.all(
-            deleteItems.map((item) => deleteItem(item.id))
-        );
+            const deleteItems = originalItems.filter(
+                (item) => !draftItemIds.includes(item.id)
+            );
 
-        await Promise.all(
-            draftItems.map((item) => 
-                updateItem(item.id, {
-                    receivedDate: item.receivedDate,
-                    itemName: item.itemName,
-                    itemType: item.itemType,
-                    valueUsd: item.valueUsd,
-                    sold: item.sold,
-                    receivedUsd: item.sold ? item.receivedUsd : null,
-                })
-            )
-        );
-        await reloadDashboardData();
+            await Promise.all(
+                deleteItems.map((item) => deleteItem(item.id))
+            );
+
+            await Promise.all(
+                draftItems.map((item) =>
+                    updateItem(item.id, {
+                        receivedDate: item.receivedDate,
+                        itemName: item.itemName,
+                        itemType: item.itemType,
+                        valueUsd: item.valueUsd,
+                        sold: item.sold,
+                        receivedUsd: item.sold ? item.receivedUsd : null,
+                    })
+                )
+            );
+
+            await reloadDashboardData();
+
+            message.success("Đã lưu thay đổi thành công");
+        } catch {
+            message.error("Không thể lưu thay đổi");
+            throw new Error("Failed to save week items");
+        }
     };
 
-    const handleAddNewWeek = async () => { await createWeek(); await reloadDashboardData(); };
+    const handleAddNewWeek = async () => {
+        try {
+            await createWeek();
+            await reloadDashboardData();
+
+            message.success("Đã tạo tuần mới");
+        } catch {
+            message.error("Không thể tạo tuần mới");
+        }
+    };
     const handleCloseAddModal = () => { setIsAddModalOpen(false); setSelectedWeekId(null)};
     return{
         items,

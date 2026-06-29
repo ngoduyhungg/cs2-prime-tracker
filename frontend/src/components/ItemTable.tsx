@@ -228,8 +228,8 @@ function ItemTable({
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                            <div className="flex items-center gap-4">
+                        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_300px_96px] md:items-center">
+                            <div className="flex min-w-0 items-center gap-4">
                                 <div
                                     className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${getTypeStyle(
                                         item.itemType
@@ -238,8 +238,8 @@ function ItemTable({
                                     {getTypeShortName(item.itemType)}
                                 </div>
 
-                                <div>
-                                    <h3 className="text-base font-bold text-slate-100">
+                                <div className="min-w-0">
+                                    <h3 className="truncate text-base font-bold text-slate-100">
                                         {item.itemName}
                                     </h3>
 
@@ -249,7 +249,7 @@ function ItemTable({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 md:min-w-[280px]">
+                            <div className="grid grid-cols-2 gap-3 md:w-[300px]">
                                 <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
                                     <p className="text-xs text-slate-500">
                                         Giá trị
@@ -265,7 +265,9 @@ function ItemTable({
                                     </p>
                                     <p
                                         className={`mt-1 font-semibold ${
-                                            item.receivedUsd === null ? "text-slate-500" : "text-emerald-300"
+                                            item.receivedUsd === null
+                                                ? "text-slate-500"
+                                                : "text-emerald-300"
                                         }`}
                                     >
                                         {formatUsd(item.receivedUsd)}
@@ -273,9 +275,9 @@ function ItemTable({
                                 </div>
                             </div>
 
-                            <div>
+                            <div className="md:flex md:justify-end">
                                 <span
-                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                    className={`inline-flex min-w-[74px] justify-center rounded-full px-3 py-1 text-xs font-semibold ${
                                         item.sold
                                             ? "bg-emerald-500/10 text-emerald-300"
                                             : "bg-rose-500/10 text-rose-300"

@@ -59,11 +59,14 @@ public class ItemService {
 
     public ItemResponse updateItem(Long id, ItemUpsertRequest newItem){
         Item oldItem = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Item to update is not found!"));
+
         oldItem.setReceivedDate(newItem.getReceivedDate());
         oldItem.setItemName(newItem.getItemName());
         oldItem.setItemType(newItem.getItemType());
         oldItem.setValueUsd(newItem.getValueUsd());
+
         boolean sold = newItem.getSold() != null ? newItem.getSold() : false;
+        oldItem.setSold(sold);
         if(sold){
             oldItem.setReceivedUsd(newItem.getReceivedUsd());
         } else {
