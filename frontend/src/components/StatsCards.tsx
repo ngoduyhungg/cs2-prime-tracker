@@ -1,19 +1,10 @@
 import { Skeleton } from "antd";
 import type { Stats } from "../types/stats";
+import { formatUsd } from "../utils/formatCurrency";
 
 type StatsProps = {
     stats: Stats | null;
 };
-
-function formatUsd(value: number) {
-    const sign = value < 0 ? "-" : "";
-    const absValue = Math.abs(value);
-
-    return `${sign}$${absValue.toLocaleString("en-US", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 6,
-    })}`;
-}
 
 function formatPercent(value: number) {
     return `${value.toLocaleString("en-US", {

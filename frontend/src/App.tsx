@@ -34,7 +34,7 @@ function App() {
         </div>
 
         <StatsCards stats={stats} />
-        <BestDropCard items={items} />
+        <BestDropCard items={items}/>
         <BestSaleCard items={items}/>
         <ItemFormModal
           open={isAddModalOpen}

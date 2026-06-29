@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import { AutoComplete, Button, Input, InputNumber, Select, Switch } from "antd";
 
 import type { Item } from "../types/item";
+import ItemIcon from "./ItemIcon";
 import useItemCatalog from "../hooks/useItemCatalog";
+import { formatUsd } from "../utils/formatCurrency";
+import { itemTypeOptions } from "../constants/itemTypes";
 
 type ItemTableProps = {
     items: Item[];
@@ -10,89 +13,6 @@ type ItemTableProps = {
     onDraftItemChange?: (itemId: number, field: keyof Item, value: unknown) => void;
     onDraftItemDelete?: (itemId: number) => void;
 };
-
-const itemTypeOptions = [
-    { label: "Case", value: "Case" },
-    { label: "Skin", value: "Skin" },
-    { label: "Graffiti", value: "Graffiti" },
-    { label: "Sticker", value: "Sticker" },
-    { label: "Other", value: "Other" },
-];
-
-function formatUsd(value: number | null) {
-    if (value === null) {
-        return "—";
-    }
-
-    return `$${value.toLocaleString("en-US", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 6,
-    })}`;
-}
-
-function getTypeStyle(itemType: string) {
-    switch (itemType) {
-        case "Case":
-            return "border-amber-500/20 bg-amber-500/10 text-amber-300";
-        case "Skin":
-            return "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
-        case "Graffiti":
-            return "border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-300";
-        case "Sticker":
-            return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
-        default:
-            return "border-slate-600/30 bg-slate-700/30 text-slate-300";
-    }
-}
-
-function getTypeShortName(itemType: string) {
-    switch (itemType) {
-        case "Case":
-            return "CA";
-        case "Skin":
-            return "SK";
-        case "Graffiti":
-            return "GR";
-        case "Sticker":
-            return "ST";
-        default:
-            return "OT";
-    }
-}
-
-type ItemIconProps = {
-    item: Item;
-    size?: "sm" | "md";
-};
-
-function ItemIcon({ item, size = "md" }: ItemIconProps) {
-    const sizeClass = size === "sm" ? "h-14 w-14" : "h-16 w-16";
-
-    if (item.imageUrl) {
-        return (
-            <div
-                className={`${sizeClass} flex shrink-0 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 p-2`}
-            >
-                <img
-                    src={item.imageUrl}
-                    alt={item.itemName}
-                    className="h-full w-full object-contain"
-                    loading="lazy"
-                />
-            </div>
-        );
-    }
-
-    return (
-        <div
-            className={`${sizeClass} flex shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${getTypeStyle(
-                item.itemType
-            )}`}
-        >
-            {getTypeShortName(item.itemType)}
-        </div>
-    );
-}
 
 function ItemTable({
     items,

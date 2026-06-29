@@ -6,7 +6,7 @@ import ItemActions from "./ItemActions";
 import { useState } from "react";
 import { Button} from "antd";
 
-//import { Card } from "antd";
+import { formatUsd } from "../utils/formatCurrency";
 
 type WeekSectionProps = {
     week: PrimeWeek,
@@ -48,11 +48,6 @@ function WeekSection({ week, items, onAddItemClick, onSaveWeekItems} : WeekSecti
 
     const soldItemCount = displayedItems.filter((item) => item.sold).length;
 
-    const formatUsd = (value: number) =>
-        `$${value.toLocaleString("en-US", {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 6,
-        })}`;
     const handleDraftItemChange = (
         itemId: number,
         field: keyof Item,

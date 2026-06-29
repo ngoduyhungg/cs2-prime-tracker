@@ -6,6 +6,7 @@ import WeekSection from "./WeekSection";
 
 import type { Item } from "../types/item";
 import type { PrimeWeek } from "../types/week";
+import { itemTypeFilterOptions, type ItemTypeFilter } from "../constants/itemTypes";
 
 type DashboardProgressProps = {
     weeks: PrimeWeek[];
@@ -16,17 +17,6 @@ type DashboardProgressProps = {
 };
 
 const WEEKS_PER_PAGE = 2;
-
-type ItemTypeFilter = "all" | "Case" | "Skin" | "Sticker" | "Graffiti" | "Other";
-
-const itemTypeFilterOptions: { label: string; value: ItemTypeFilter }[] = [
-    { label: "Tất cả loại", value: "all" },
-    { label: "Case", value: "Case" },
-    { label: "Skin", value: "Skin" },
-    { label: "Sticker", value: "Sticker" },
-    { label: "Graffiti", value: "Graffiti" },
-    { label: "Other", value: "Other" },
-];
 
 type SoldFilter = "all" | "sold" | "unsold";
 

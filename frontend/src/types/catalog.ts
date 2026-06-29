@@ -1,4 +1,4 @@
-type CatalogItemType = "Case" | "Skin" | "Graffiti" | "Sticker" | "Other";
+import type { ItemType } from "../constants/itemTypes";
 
 type CatalogItemSource = "skins" | "crates" | "stickers" | "graffiti";
 
@@ -6,9 +6,9 @@ type CatalogItem = {
     id: string;
     name: string;
     marketHashName: string;
-    itemType: CatalogItemType;
+    itemType: ItemType;
     imageUrl: string | null;
     source: CatalogItemSource;
 };
 
-export type { CatalogItem, CatalogItemType, CatalogItemSource };
+export type { CatalogItem, CatalogItemSource };

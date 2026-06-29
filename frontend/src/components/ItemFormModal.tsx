@@ -5,6 +5,7 @@ import type { Dayjs } from "dayjs";
 import useItemCatalog from "../hooks/useItemCatalog";
 import type { CatalogItem } from "../types/catalog";
 import type { CreateItemPayload } from "../types/item";
+import { itemTypeOptions } from "../constants/itemTypes";
 
 type ItemFormModalProps = {
     open: boolean;
@@ -21,14 +22,6 @@ type ItemFormValues = {
     sold: boolean;
     receivedUsd?: number;
 };
-
-const itemTypeOptions = [
-    { label: "Case", value: "Case" },
-    { label: "Skin", value: "Skin" },
-    { label: "Graffiti", value: "Graffiti" },
-    { label: "Sticker", value: "Sticker" },
-    { label: "Other", value: "Other" },
-];
 
 function ItemFormModal({
     open,
