@@ -5,9 +5,10 @@ import { formatUsd } from "../utils/formatCurrency";
 
 type BestDropCardProps = {
     items: Item[];
+    compact?: boolean;
 };
 
-function BestDropCard({ items }: BestDropCardProps) {
+function BestDropCard({ items, compact = false }: BestDropCardProps) {
     const bestDrop = items.reduce<Item | null>((bestItem, currentItem) => {
         if (!bestItem) {
             return currentItem;
@@ -21,6 +22,7 @@ function BestDropCard({ items }: BestDropCardProps) {
             variant="drop"
             label="Best Drop"
             item={bestDrop}
+            compact={compact}
             emptyTitle="Chưa có vật phẩm nào"
             emptyDescription="Thêm vật phẩm đầu tiên để bắt đầu ghi nhận drop giá trị cao nhất."
             emptyIcon="🏆"

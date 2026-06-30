@@ -5,9 +5,10 @@ import { formatUsd } from "../utils/formatCurrency";
 
 type BestSaleCardProps = {
     items: Item[];
+    compact?: boolean;
 };
 
-function BestSaleCard({ items }: BestSaleCardProps) {
+function BestSaleCard({ items, compact=false}: BestSaleCardProps) {
     const soldItems = items.filter(
         (item) => item.sold && item.receivedUsd !== null
     );
@@ -28,6 +29,7 @@ function BestSaleCard({ items }: BestSaleCardProps) {
             variant="sale"
             label="Best Sale"
             item={bestSale}
+            compact={compact}
             emptyTitle="Chưa có vật phẩm đã bán"
             emptyDescription="Khi bạn bán item đầu tiên, card này sẽ hiển thị item có tiền thực nhận cao nhất."
             emptyIcon="💰"

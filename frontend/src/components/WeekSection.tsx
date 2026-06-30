@@ -95,48 +95,48 @@ function WeekSection({ week, items, onAddItemClick, onSaveWeekItems} : WeekSecti
     );
 
     return(
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-sm transition-all duration-200 hover:border-slate-700">
-        <div className="mb-5 flex flex-col gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center md:justify-between">
-            <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
-                    Weekly Drop
-                </p>
+        <section className="rgb-border-card rgb-border-card-soft rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-sm transition-all duration-200 hover:border-slate-700">
+            <div className="mb-5 flex flex-col gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
+                        Weekly Drop
+                    </p>
 
-                <h2 className="mt-2 text-xl font-bold text-slate-100">
-                    Tuần {week.weekNumber}
-                </h2>
+                    <h2 className="mt-2 text-xl font-bold text-slate-100">
+                        Tuần {week.weekNumber}
+                    </h2>
 
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full border border-slate-700 bg-slate-950/40 px-3 py-1 text-slate-300">
-                    {displayedItems.length} vật phẩm
-                </span>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full border border-slate-700 bg-slate-950/40 px-3 py-1 text-slate-300">
+                        {displayedItems.length} vật phẩm
+                    </span>
 
-                <span className="rounded-full border border-slate-700 bg-slate-950/40 px-3 py-1 text-slate-300">
-                    Đã bán {soldItemCount}/{displayedItems.length}
-                </span>
+                    <span className="rounded-full border border-slate-700 bg-slate-950/40 px-3 py-1 text-slate-300">
+                        Đã bán {soldItemCount}/{displayedItems.length}
+                    </span>
 
-                <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-cyan-300">
-                    Giá trị {formatUsd(totalValueUsd)}
-                </span>
+                    <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-cyan-300">
+                        Giá trị {formatUsd(totalValueUsd)}
+                    </span>
 
-                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">
-                    Đã nhận {formatUsd(totalReceivedUsd)}
-                </span>
+                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">
+                        Đã nhận {formatUsd(totalReceivedUsd)}
+                    </span>
+                </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    {tableActions}
+                </div>
             </div>
-            </div>
 
-            <div className="flex flex-wrap gap-2">
-                {tableActions}
-            </div>
-        </div>
-
-        <ItemTable
-            items={displayedItems}
-            isEditing={isEditing}
-            onDraftItemChange={handleDraftItemChange}
-            onDraftItemDelete={handleDraftItemDelete}
-        />
-    </section>
+            <ItemTable
+                items={displayedItems}
+                isEditing={isEditing}
+                onDraftItemChange={handleDraftItemChange}
+                onDraftItemDelete={handleDraftItemDelete}
+            />
+        </section>
     );
 };
 

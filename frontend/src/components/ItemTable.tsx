@@ -6,6 +6,8 @@ import ItemIcon from "./ItemIcon";
 import useItemCatalog from "../hooks/useItemCatalog";
 import { formatUsd } from "../utils/formatCurrency";
 import { itemTypeOptions } from "../constants/itemTypes";
+import { getItemTypeVisual } from "../utils/itemVisuals";
+import { getDisplayItemName, getWearInfo } from "../utils/itemWear";
 
 type ItemTableProps = {
     items: Item[];
@@ -115,7 +117,11 @@ function ItemTable({
 
     return (
         <div className="mt-6 flex flex-col gap-3">
-            {items.map((item) => (
+            {items.map((item) => {
+                const visual = getItemTypeVisual(item.itemType);
+                const wearInfo = getWearInfo(item.itemName);
+                const displayName = getDisplayItemName(item.itemName);
+                return (
                 <div
                     key={item.id}
                     className="rounded-2xl border border-slate-800 bg-slate-950/50 px-5 py-4 transition-all duration-200 hover:border-slate-700 hover:bg-slate-950/80"
@@ -282,17 +288,23 @@ function ItemTable({
 
                                 <div className="min-w-0">
                                     <h3 className="truncate text-base font-bold text-slate-100">
-                                        {item.itemName}
+                                        {displayName}
                                     </h3>
-
-                                    <p className="mt-1 text-sm text-slate-400">
+                                    {wearInfo && (
+                                        <span
+                                            className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold ${wearInfo.borderClass} ${wearInfo.bgClass} ${wearInfo.textClass}`}
+                                        >
+                                            {wearInfo.label}
+                                        </span>
+                                    )}
+                                    <p className={`mt-1 text-sm ${visual.textClass}`}>
                                         {item.itemType} · {item.receivedDate}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 md:w-[300px]">
-                                <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                                <div className={`rounded-2xl border ${visual.borderClass} ${visual.softBgClass} px-4 py-3`}>
                                     <p className="text-xs text-slate-500">
                                         Giá trị
                                     </p>
@@ -301,7 +313,7 @@ function ItemTable({
                                     </p>
                                 </div>
 
-                                <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                                <div className={`rounded-2xl border ${visual.borderClass} bg-slate-900/70 px-4 py-3`}>
                                     <p className="text-xs text-slate-500">
                                         Đã nhận
                                     </p>
@@ -331,7 +343,8 @@ function ItemTable({
                         </div>
                     )}
                 </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
